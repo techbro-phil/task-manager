@@ -12,12 +12,31 @@ class TaskController extends Controller
      */
     public function index()
     {
-        // Eloquent pulls ALL records from the tasks table automatically
-        $allTasks = Task::all();
+        // Pull tasks sorted by latest first so new ones show at the top
+        $allTasks = Task::latest()->get();
 
-        // Pass the database tasks directly into our existing 'tasks.blade.php' layout
         return view('tasks', [
             'tasks' => $allTasks
         ]);
+    }
+
+    /**
+     * Store a newly created task in the database.
+     */
+    public function store(Request $request)
+    {
+        // 1. Form Validation: Stop empty or massive text fields from entering our database
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+        ]);
+
+        // 2. Database Insertion: Create a record using our Eloquent model properties
+        Task::create([
+            'title' => $validatedData['title'],
+            'is_completed' => false, // New tasks default to pending status
+        ]);
+
+        // 3. User Redirect: Send the browser back to our task list to view the update
+        return redirect('/tasks');
     }
 }
