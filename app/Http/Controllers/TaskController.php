@@ -4,21 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
     /**
-     * Display a listing of all tasks pulled straight from the database.
+     * Display a listing of tasks belonging ONLY to the logged-in user.
      */
     public function index()
     {
+        // auth()->user()->tasks() uses our model relationship to pull only the current user's records!
+        $userTasks = auth()->user()->tasks()->latest()->get();
+
         return view('tasks', [
-            'tasks' => Task::latest()->get()
+            'tasks' => $userTasks
         ]);
     }
 
     /**
-     * Store a newly created task in the database.
+     * Store a newly created task linked to the current logged-in user.
      */
     public function store(Request $request)
     {
@@ -26,7 +30,8 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
         ]);
 
-        Task::create([
+        // Creates the task record through the logged-in user identity wrapper
+        auth()->user()->tasks()->create([
             'title' => $validatedData['title'],
             'is_completed' => false,
         ]);
@@ -35,11 +40,15 @@ class TaskController extends Controller
     }
 
     /**
-     * Toggle the completion status of a specific task.
+     * Toggle status, adding an authorization block so users cannot change other people's tasks.
      */
     public function update(Task $task)
     {
-        // Flip the current boolean value (true becomes false, false becomes true)
+        // Security Check: If the task does not belong to you, abort immediately with a 403 error
+        if ($task->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $task->update([
             'is_completed' => !$task->is_completed
         ]);
@@ -48,11 +57,15 @@ class TaskController extends Controller
     }
 
     /**
-     * Permanently remove a specific task from the database.
+     * Permanently remove a task, protected by an identity check layer.
      */
     public function destroy(Task $task)
     {
-        // Eloquent deletes this specific row match instantly
+        // Security Check: Abort if someone alters form values to delete someone else's data rows
+        if ($task->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $task->delete();
 
         return redirect('/tasks');

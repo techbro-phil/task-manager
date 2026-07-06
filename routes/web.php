@@ -2,20 +2,32 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\ProfileController;
 
-// Automatically redirect the root homepage to our tasks list dashboard
+// The homepage checks if a user is authenticated
 Route::get('/', function () {
-    return redirect('/tasks');
+    if (auth()->check()) {
+        return redirect('/tasks');
+    }
+    return view('welcome');
 });
 
-// Display the list of tasks (READ)
-Route::get('/tasks', [TaskController::class, 'index']);
+// We bundle our Task Manager routes inside an 'auth' middleware group.
+// If an unauthenticated guest tries to visit /tasks, Laravel auto-redirects them to the login screen!
+Route::middleware('auth')->group(function () {
+    Route::get('/tasks', [TaskController::class, 'index']);
+    Route::post('/tasks', [TaskController::class, 'store']);
+    Route::put('/tasks/{task}', [TaskController::class, 'update']);
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
+    
+    // Official profile management dashboard actions
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-// Handle form submission to add a new task (CREATE)
-Route::post('/tasks', [TaskController::class, 'store']);
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-// Toggle task complete/incomplete status (UPDATE)
-Route::put('/tasks/{task}', [TaskController::class, 'update']);
-
-// Permanently wipe out a task row (DELETE)
-Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
+require __DIR__.'/auth.php';
