@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 abstract class Controller
 {
-    // This is the essential base abstract class required by all Laravel controllers
+    use AuthorizesRequests;
 }

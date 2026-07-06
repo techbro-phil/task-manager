@@ -2,71 +2,72 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTaskRequest;
 use App\Models\Task;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
     /**
-     * Display a listing of tasks and categories belonging ONLY to the logged-in user.
+     * Display a listing of the authenticated user's tasks and categories,
+     * with optional filtering by category.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $userTasks = auth()->user()->tasks()->with('category')->latest()->get();
-        $userCategories = auth()->user()->categories()->latest()->get();
+        $userCategories = $request->user()->categories()->latest()->get();
+
+        $userTasks = $request->user()->tasks()
+            ->with('category')
+            ->when($request->filled('category_id'), fn ($query) =>
+                $query->where('category_id', $request->category_id)
+            )
+            ->latest()
+            ->get();
 
         return view('tasks', [
             'tasks' => $userTasks,
-            'categories' => $userCategories
+            'categories' => $userCategories,
         ]);
     }
 
     /**
-     * Store a newly created task linked to a user and optional category.
+     * Store a newly created task linked to the authenticated user.
      */
-    public function store(Request $request)
+    public function store(StoreTaskRequest $request): RedirectResponse
     {
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'category_id' => 'nullable|exists:categories,id', 
-        ]);
-
-        auth()->user()->tasks()->create([
-            'title' => $validatedData['title'],
-            'category_id' => $validatedData['category_id'],
+        $request->user()->tasks()->create([
+            'title' => $request->validated('title'),
+            'category_id' => $request->validated('category_id'),
             'is_completed' => false,
         ]);
 
-        return redirect('/tasks');
+        return redirect()->route('tasks.index')->with('success', 'Task added.');
     }
 
     /**
-     * Toggle status, protecting with an authorization block.
+     * Toggle a task's completion status. Only the owner may do this.
      */
-    public function update(Task $task)
+    public function update(Task $task): RedirectResponse
     {
-        if ($task->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorize('update', $task);
 
         $task->update([
-            'is_completed' => !$task->is_completed
+            'is_completed' => ! $task->is_completed,
         ]);
 
-        return redirect('/tasks');
+        return redirect()->route('tasks.index')->with('success', 'Task updated.');
     }
 
     /**
-     * Permanently remove a task row.
+     * Permanently remove a task. Only the owner may do this.
      */
-    public function destroy(Task $task)
+    public function destroy(Task $task): RedirectResponse
     {
-        if ($task->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorize('delete', $task);
 
         $task->delete();
 
-        return redirect('/tasks');
+        return redirect()->route('tasks.index')->with('success', 'Task deleted.');
     }
 }

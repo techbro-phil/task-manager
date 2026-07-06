@@ -18,16 +18,20 @@ class Task extends Model
     ];
 
     /**
-     * A task belongs to a single specific User account.
+     * @return array<string, string>
      */
+    protected function casts(): array
+    {
+        return [
+            'is_completed' => 'boolean',
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * A task can optionally belong to a single Category.
-     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

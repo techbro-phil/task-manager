@@ -1,30 +1,22 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TaskController;
+use Illuminate\Support\Facades\Route;
 
-// The homepage checks if a user is authenticated
+// The homepage sends logged-in users straight to their task dashboard.
 Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect('/tasks');
-    }
-    return view('welcome');
+    return auth()->check() ? redirect()->route('tasks.index') : view('welcome');
 });
 
-// Protected routes wrapped in the 'auth' middleware group
 Route::middleware('auth')->group(function () {
-    // Task Manager CRUD routes
-    Route::get('/tasks', [TaskController::class, 'index']);
-    Route::post('/tasks', [TaskController::class, 'store']);
-    Route::put('/tasks/{task}', [TaskController::class, 'update']);
-    Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
-    
-    // Category routes (We only need 'store' for adding labels)
-    Route::post('/categories', [CategoryController::class, 'store']);
-    
-    // Account Profile management actions
+    // Generates: tasks.index (GET /tasks), tasks.store (POST /tasks),
+    // tasks.update (PUT /tasks/{task}), tasks.destroy (DELETE /tasks/{task})
+    Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
