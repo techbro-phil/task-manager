@@ -12,11 +12,8 @@ class TaskController extends Controller
      */
     public function index()
     {
-        // Pull tasks sorted by latest first so new ones show at the top
-        $allTasks = Task::latest()->get();
-
         return view('tasks', [
-            'tasks' => $allTasks
+            'tasks' => Task::latest()->get()
         ]);
     }
 
@@ -25,18 +22,39 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Form Validation: Stop empty or massive text fields from entering our database
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
         ]);
 
-        // 2. Database Insertion: Create a record using our Eloquent model properties
         Task::create([
             'title' => $validatedData['title'],
-            'is_completed' => false, // New tasks default to pending status
+            'is_completed' => false,
         ]);
 
-        // 3. User Redirect: Send the browser back to our task list to view the update
+        return redirect('/tasks');
+    }
+
+    /**
+     * Toggle the completion status of a specific task.
+     */
+    public function update(Task $task)
+    {
+        // Flip the current boolean value (true becomes false, false becomes true)
+        $task->update([
+            'is_completed' => !$task->is_completed
+        ]);
+
+        return redirect('/tasks');
+    }
+
+    /**
+     * Permanently remove a specific task from the database.
+     */
+    public function destroy(Task $task)
+    {
+        // Eloquent deletes this specific row match instantly
+        $task->delete();
+
         return redirect('/tasks');
     }
 }

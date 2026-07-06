@@ -8,8 +8,14 @@ Route::get('/', function () {
     return redirect('/tasks');
 });
 
-// This displays the list of tasks (READ)
+// Display the list of tasks (READ)
 Route::get('/tasks', [TaskController::class, 'index']);
 
-// This handles the form submission when someone adds a task (CREATE)
+// Handle form submission to add a new task (CREATE)
 Route::post('/tasks', [TaskController::class, 'store']);
+
+// Toggle task complete/incomplete status (UPDATE)
+Route::put('/tasks/{task}', [TaskController::class, 'update']);
+
+// Permanently wipe out a task row (DELETE)
+Route::delete('/tasks/{task}', [TaskController::class, 'destroy']);
