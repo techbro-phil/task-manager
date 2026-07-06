@@ -11,7 +11,8 @@ class Task extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', // Add user_id to our protected mass assignable list
+        'user_id',
+        'category_id',
         'title',
         'is_completed',
     ];
@@ -22,5 +23,13 @@ class Task extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * A task can optionally belong to a single Category.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 }

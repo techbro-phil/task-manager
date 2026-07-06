@@ -9,84 +9,147 @@
 </head>
 <body class="bg-gray-50 font-sans antialiased text-gray-900">
 
-    <div class="max-w-2xl mx-auto py-12 px-4">
+    <div class="max-w-5xl mx-auto py-12 px-4">
         <!-- Header Section -->
-        <header class="mb-8 border-b border-gray-200 pb-5">
-            <h1 class="text-3xl font-extrabold tracking-tight text-gray-900">
-                📝 Task Management Tool
-            </h1>
-            <p class="mt-2 text-sm text-gray-600">
-                Welcome back! Manage, update, and track your active milestones seamlessly.
-            </p>
-        </header>
-
-        <!-- New Task Form Section -->
-        <section class="mb-8 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Add a New Task</h2>
-            <form action="/tasks" method="POST" class="flex gap-3">
+        <header class="mb-8 border-b border-gray-200 pb-5 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-gray-900">
+                    📝 Task Management Tool
+                </h1>
+                <p class="mt-2 text-sm text-gray-600">
+                    Welcome back! Create categories and organize your goals cleanly.
+                </p>
+            </div>
+            <!-- Logout Action link provided by Laravel Breeze -->
+            <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <input 
-                    type="text" 
-                    name="title" 
-                    placeholder="What needs to be done?" 
-                    class="flex-1 min-w-0 rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                    required
-                >
-                <button 
-                    type="submit" 
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
-                >
-                    Add Task
+                <button type="submit" class="text-sm font-semibold text-gray-500 hover:text-gray-700 bg-transparent border-0 cursor-pointer">
+                    Log Out
                 </button>
             </form>
-        </section>
+        </header>
 
-        <!-- Tasks List Section -->
-        <main>
-            <div class="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul role="list" class="divide-y divide-gray-200">
-                    <!-- Check if any tasks exist in the database -->
-                    @if($tasks->isEmpty())
-                        <li class="px-6 py-12 text-center text-sm text-gray-500">
-                            🎉 No tasks left! Enjoy your clear workspace.
-                        </li>
-                    @endif
+        <!-- Two Column Dashboard Layout Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- LEFT COLUMN: Categories Sidebar Manager -->
+            <div class="space-y-6">
+                <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Create a Category</h2>
+                    <form action="/categories" method="POST" class="space-y-3">
+                        @csrf
+                        <input 
+                            type="text" 
+                            name="name" 
+                            placeholder="e.g., Work, Personal, Bills" 
+                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                            required
+                        >
+                        <button type="submit" class="w-full inline-flex justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-900 focus:outline-none">
+                            Add Category
+                        </button>
+                    </form>
+                </section>
 
-                    @foreach ($tasks as $task)
-                        <li class="px-6 py-4 flex items-center hover:bg-gray-50 transition justify-between">
-                            <div class="flex items-center flex-1">
-                                <!-- Status circle -->
-                                <span class="w-2.5 h-2.5 rounded-full mr-4 {{ $task->is_completed ? 'bg-green-500' : 'bg-amber-500' }}"></span>
-                                
-                                <span class="text-sm font-medium {{ $task->is_completed ? 'text-gray-400 line-through' : 'text-gray-700' }}">
-                                    {{ $task->title }}
+                <!-- Current Active Categories List indicator card -->
+                <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Your Labels</h3>
+                    @if($categories->isEmpty())
+                        <p class="text-xs text-gray-400 italic">No labels created yet.</p>
+                    @else
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($categories as $category)
+                                <span class="px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md border border-blue-100">
+                                    {{ $category->name }}
                                 </span>
-                            </div>
-
-                            <div class="flex items-center gap-3">
-                                <!-- UPDATE STATUS BUTTON FORM -->
-                                <form action="/tasks/{{ $task->id }}" method="POST">
-                                    @csrf
-                                    @method('PUT') <!-- Forces the browser to send a PUT request -->
-                                    <button type="submit" class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border transition cursor-pointer {{ $task->is_completed ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200' : 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200' }}">
-                                        {{ $task->is_completed ? 'Done' : 'Pending' }}
-                                    </button>
-                                </form>
-
-                                <!-- DELETE TASK BUTTON FORM -->
-                                <form action="/tasks/{{ $task->id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');">
-                                    @csrf
-                                    @method('DELETE') <!-- Forces the browser to send a DELETE request -->
-                                    <button type="submit" class="text-red-500 hover:text-red-700 text-sm font-semibold px-2 py-1 transition cursor-pointer">
-                                        Delete
-                                    </button>
-                                </form>
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
+                            @endforeach
+                        </div>
+                    @endif
+                </section>
             </div>
-        </main>
+
+            <!-- RIGHT COLUMN: Tasks CRUD Manager (Takes 2/3 width grid space) -->
+            <div class="md:col-span-2 space-y-6">
+                <!-- Task Entry Form Card -->
+                <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Add a New Task</h2>
+                    <form action="/tasks" method="POST" class="flex flex-col sm:flex-row gap-3">
+                        @csrf
+                        <input 
+                            type="text" 
+                            name="title" 
+                            placeholder="What needs to be done?" 
+                            class="flex-1 min-w-0 rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                            required
+                        >
+                        
+                        <!-- Category Picker drop down selection input -->
+                        <select name="category_id" class="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                            <option value="">No Label</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+
+                        <button type="submit" class="inline-flex justify-center items-center px-5 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
+                            Add Task
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Tasks Listing view box -->
+                <main>
+                    <div class="bg-white shadow overflow-hidden sm:rounded-md border border-gray-200">
+                        <ul role="list" class="divide-y divide-gray-200">
+                            @if($tasks->isEmpty())
+                                <li class="px-6 py-12 text-center text-sm text-gray-500">
+                                    🎉 No tasks left! Enjoy your clear workspace.
+                                </li>
+                            @endif
+
+                            @foreach ($tasks as $task)
+                                <li class="px-6 py-4 flex items-center hover:bg-gray-50 transition justify-between">
+                                    <div class="flex items-center flex-1 min-w-0">
+                                        <span class="w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 {{ $task->is_completed ? 'bg-green-500' : 'bg-amber-500' }}"></span>
+                                        
+                                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                                            <span class="text-sm font-medium truncate {{ $task->is_completed ? 'text-gray-400 line-through' : 'text-gray-700' }}">
+                                                {{ $task->title }}
+                                            </span>
+                                            <!-- Optional Category tag label indicator string badge conditional layout -->
+                                            @if($task->category)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                                    {{ $task->category->name }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-3 ml-4 flex-shrink-0">
+                                        <form action="/tasks/{{ $task->id }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border transition cursor-pointer {{ $task->is_completed ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200' : 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200' }}">
+                                                {{ $task->is_completed ? 'Done' : 'Pending' }}
+                                            </button>
+                                        </form>
+
+                                        <form action="/tasks/{{ $task->id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-500 hover:text-red-700 text-sm font-semibold px-2 py-1 transition cursor-pointer">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </main>
+            </div>
+
+        </div>
     </div>
 
 </body>
