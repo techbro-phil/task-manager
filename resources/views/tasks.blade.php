@@ -82,15 +82,40 @@
                     @if($categories->isEmpty())
                         <p class="text-xs text-gray-400 italic">No labels created yet.</p>
                     @else
-                        <div class="flex flex-wrap gap-2">
+                        <div class="space-y-2">
                             @foreach($categories as $category)
-                                <!-- Dynamic Link: Reloads page appending the category selection id -->
-                                
-                                    href="{{ route('tasks.index', ['category_id' => $category->id]) }}"
-                                    class="px-2.5 py-1 text-xs font-medium rounded-md border transition {{ request('category_id') == $category->id ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100' }}"
-                                >
-                                    {{ $category->name }}
-                                </a>
+                                <div class="flex items-center justify-between gap-2">
+                                    
+                                        href="{{ route('tasks.index', ['category_id' => $category->id]) }}"
+                                        class="px-2.5 py-1 text-xs font-medium rounded-md border transition {{ request('category_id') == $category->id ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100' }}"
+                                    >
+                                        {{ $category->name }}
+                                    </a>
+
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <details class="relative">
+                                            <summary class="cursor-pointer text-xs text-gray-400 hover:text-gray-600 list-none select-none">Rename</summary>
+                                            <form action="{{ route('categories.update', $category) }}" method="POST" class="mt-2 flex gap-1">
+                                                @csrf
+                                                @method('PUT')
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    value="{{ $category->name }}"
+                                                    class="text-xs rounded border border-gray-300 px-2 py-1 w-24 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                    required
+                                                >
+                                                <button type="submit" class="text-xs font-medium text-blue-600 hover:text-blue-800">Save</button>
+                                            </form>
+                                        </details>
+
+                                        <form action="{{ route('categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Delete this category? Tasks will keep their titles but lose this label.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-xs text-red-400 hover:text-red-600">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
                     @endif
