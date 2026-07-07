@@ -4,25 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Manager - Dashboard</title>
-    <!-- Tailwind CSS loaded directly via CDN -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
     <script src="https://tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        paper: '#FBF8F2',
+                        rule: '#E7DFCE',
+                        ink: '#26241E',
+                        inksoft: '#6B6558',
+                        moss: '#4B6E58',
+                        mosssoft: '#E4EBE6',
+                        ochre: '#B8813A',
+                        ochresoft: '#F5EADA',
+                        rust: '#A24936',
+                    },
+                    fontFamily: {
+                        display: ['"Zilla Slab"', 'serif'],
+                        body: ['"Inter"', 'sans-serif'],
+                        mono: ['"IBM Plex Mono"', 'monospace'],
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        .check-square { transition: background-color .15s ease, border-color .15s ease; }
+        .tab-hole {
+            width: 6px; height: 6px; border-radius: 9999px;
+            background: #FBF8F2; border: 1px solid #E7DFCE;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 font-sans antialiased text-gray-900">
+<body class="bg-paper font-body text-ink antialiased">
 
     <div class="max-w-5xl mx-auto py-12 px-4">
-        <!-- Header Section -->
-        <header class="mb-8 border-b border-gray-200 pb-5 flex justify-between items-center">
+
+        <!-- Header -->
+        <header class="mb-10 pb-5 border-b-2 border-ink flex justify-between items-end">
             <div>
-                <h1 class="text-3xl font-extrabold tracking-tight text-gray-900">
-                    📝 Task Management Tool
+                <h1 class="font-display font-bold text-3xl tracking-tight text-ink">
+                    Task Manager
                 </h1>
-                <p class="mt-2 text-sm text-gray-600">
-                    Click on your category badges in the sidebar to instantly filter your workspace.
+                <p class="mt-1 font-mono text-xs uppercase tracking-widest text-inksoft">
+                    {{ $tasks->where('is_completed', false)->count() }} open · {{ $tasks->count() }} total
                 </p>
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="text-sm font-semibold text-gray-500 hover:text-gray-700 bg-transparent border-0 cursor-pointer">
+                <button type="submit" class="font-mono text-xs uppercase tracking-widest text-inksoft hover:text-ink transition">
                     Log Out
                 </button>
             </form>
@@ -30,14 +67,14 @@
 
         <!-- Flash Success Message -->
         @if (session('success'))
-            <div class="mb-6 rounded-md bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
+            <div class="mb-6 rounded border border-moss/30 bg-mosssoft px-4 py-3 text-sm text-moss font-medium">
                 {{ session('success') }}
             </div>
         @endif
 
         <!-- Validation Error Messages -->
         @if ($errors->any())
-            <div class="mb-6 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
+            <div class="mb-6 rounded border border-rust/30 bg-rust/5 px-4 py-3 text-sm text-rust">
                 <ul class="list-disc list-inside space-y-1">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -46,55 +83,54 @@
             </div>
         @endif
 
-        <!-- Two Column Dashboard Layout Grid -->
+        <!-- Two Column Layout -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-            <!-- LEFT COLUMN: Categories Sidebar Manager -->
+            <!-- LEFT COLUMN: Categories -->
             <div class="space-y-6">
-                <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h2 class="text-lg font-medium text-gray-900 mb-4">Create a Category</h2>
+                <section class="bg-white p-6 rounded-lg border border-rule shadow-sm">
+                    <h2 class="font-display font-bold text-base text-ink mb-4">New Category</h2>
                     <form action="{{ route('categories.store') }}" method="POST" class="space-y-3">
                         @csrf
                         <input
                             type="text"
                             name="name"
                             placeholder="e.g., Work, Personal, Bills"
-                            class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                            class="w-full rounded border border-rule px-3 py-2 text-sm bg-paper focus:border-ochre focus:ring-1 focus:ring-ochre outline-none"
                             required
                         >
-                        <button type="submit" class="w-full inline-flex justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-900 focus:outline-none">
+                        <button type="submit" class="w-full inline-flex justify-center px-4 py-2 rounded text-sm font-medium text-white bg-ink hover:bg-ink/90 transition">
                             Add Category
                         </button>
                     </form>
                 </section>
 
-                <!-- Clickable Interactive Labels Card -->
-                <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Filter by Label</h3>
+                <section class="bg-white p-6 rounded-lg border border-rule shadow-sm">
+                    <h3 class="font-mono text-xs uppercase tracking-widest text-inksoft mb-4">Filter by Label</h3>
 
-                    <!-- Clear filter option reset link -->
-                    <div class="mb-4 pb-3 border-b border-gray-100">
-                        <a href="{{ route('tasks.index') }}" class="text-xs font-semibold {{ request('category_id') ? 'text-blue-600 hover:text-blue-800' : 'text-gray-900 underline' }}">
-                            📁 Show All Active Tasks
+                    <div class="mb-4 pb-3 border-b border-rule">
+                        <a href="{{ route('tasks.index') }}" class="font-mono text-xs uppercase tracking-wide {{ request('category_id') ? 'text-ochre hover:text-ink' : 'text-ink underline underline-offset-2' }}">
+                            Show All
                         </a>
                     </div>
 
                     @if($categories->isEmpty())
-                        <p class="text-xs text-gray-400 italic">No labels created yet.</p>
+                        <p class="text-xs text-inksoft italic">No labels created yet.</p>
                     @else
                         <div class="space-y-2">
                             @foreach($categories as $category)
-                                <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center justify-between gap-2 px-2 py-1.5 rounded {{ request('category_id') == $category->id ? 'bg-ochresoft' : '' }}">
                                     
                                         href="{{ route('tasks.index', ['category_id' => $category->id]) }}"
-                                        class="px-2.5 py-1 text-xs font-medium rounded-md border transition {{ request('category_id') == $category->id ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100' }}"
+                                        class="flex items-center gap-2 text-sm font-medium {{ request('category_id') == $category->id ? 'text-ochre' : 'text-inksoft hover:text-ink' }}"
                                     >
+                                        <span class="tab-hole"></span>
                                         {{ $category->name }}
                                     </a>
 
                                     <div class="flex items-center gap-2 flex-shrink-0">
                                         <details class="relative">
-                                            <summary class="cursor-pointer text-xs text-gray-400 hover:text-gray-600 list-none select-none">Rename</summary>
+                                            <summary class="cursor-pointer font-mono text-[10px] uppercase text-inksoft/60 hover:text-inksoft list-none select-none">Edit</summary>
                                             <form action="{{ route('categories.update', $category) }}" method="POST" class="mt-2 flex gap-1">
                                                 @csrf
                                                 @method('PUT')
@@ -102,17 +138,17 @@
                                                     type="text"
                                                     name="name"
                                                     value="{{ $category->name }}"
-                                                    class="text-xs rounded border border-gray-300 px-2 py-1 w-24 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                                                    class="text-xs rounded border border-rule px-2 py-1 w-24 bg-paper focus:border-ochre focus:ring-1 focus:ring-ochre outline-none"
                                                     required
                                                 >
-                                                <button type="submit" class="text-xs font-medium text-blue-600 hover:text-blue-800">Save</button>
+                                                <button type="submit" class="font-mono text-[10px] uppercase text-moss hover:text-ink">Save</button>
                                             </form>
                                         </details>
 
                                         <form action="{{ route('categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Delete this category? Tasks will keep their titles but lose this label.');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-xs text-red-400 hover:text-red-600">Delete</button>
+                                            <button type="submit" class="font-mono text-[10px] uppercase text-rust/70 hover:text-rust">Del</button>
                                         </form>
                                     </div>
                                 </div>
@@ -122,78 +158,80 @@
                 </section>
             </div>
 
-            <!-- RIGHT COLUMN: Tasks CRUD Manager -->
+            <!-- RIGHT COLUMN: Tasks -->
             <div class="md:col-span-2 space-y-6">
-                <!-- Task Entry Form Card -->
-                <section class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h2 class="text-lg font-medium text-gray-900 mb-4">Add a New Task</h2>
+                <!-- Task Entry Form -->
+                <section class="bg-white p-6 rounded-lg border border-rule shadow-sm">
+                    <h2 class="font-display font-bold text-base text-ink mb-4">Add a Task</h2>
                     <form action="{{ route('tasks.store') }}" method="POST" class="flex flex-col sm:flex-row gap-3">
                         @csrf
                         <input
                             type="text"
                             name="title"
                             placeholder="What needs to be done?"
-                            class="flex-1 min-w-0 rounded-md border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                            class="flex-1 min-w-0 rounded border-0 border-b-2 border-rule bg-transparent px-1 py-2 text-sm font-mono focus:border-ochre outline-none"
                             required
                         >
 
-                        <select name="category_id" class="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                        <select name="category_id" class="rounded border border-rule px-3 py-2 text-sm text-inksoft bg-paper focus:border-ochre focus:ring-1 focus:ring-ochre outline-none">
                             <option value="">No Label</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                             @endforeach
                         </select>
 
-                        <button type="submit" class="inline-flex justify-center items-center px-5 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
-                            Add Task
+                        <button type="submit" class="inline-flex justify-center items-center px-5 py-2 rounded text-sm font-medium text-white bg-ochre hover:bg-ochre/90 transition">
+                            Add
                         </button>
                     </form>
                 </section>
 
-                <!-- Tasks Listing view box -->
+                <!-- Tasks List -->
                 <main>
-                    <div class="bg-white shadow overflow-hidden sm:rounded-md border border-gray-200">
-                        <ul role="list" class="divide-y divide-gray-200">
+                    <div class="bg-white rounded-lg border border-rule shadow-sm overflow-hidden">
+                        <ul role="list" class="divide-y divide-rule">
                             @if($tasks->isEmpty())
-                                <li class="px-6 py-12 text-center text-sm text-gray-500">
-                                    🔍 No matching tasks found for this view criteria.
+                                <li class="px-6 py-12 text-center text-sm text-inksoft">
+                                    Nothing here yet. Add your first task above.
                                 </li>
                             @endif
 
                             @foreach ($tasks as $task)
-                                <li class="px-6 py-4 flex items-center hover:bg-gray-50 transition justify-between">
-                                    <div class="flex items-center flex-1 min-w-0">
-                                        <span class="w-2.5 h-2.5 rounded-full mr-4 flex-shrink-0 {{ $task->is_completed ? 'bg-green-500' : 'bg-amber-500' }}"></span>
+                                <li class="px-6 py-4 flex items-center hover:bg-paper/60 transition justify-between">
+                                    <div class="flex items-center flex-1 min-w-0 gap-4">
+                                        <!-- Checkbox toggle -->
+                                        <form action="{{ route('tasks.update', $task) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" aria-label="{{ $task->is_completed ? 'Mark as pending' : 'Mark as done' }}"
+                                                class="check-square w-6 h-6 rounded-sm border-2 flex items-center justify-center flex-shrink-0 {{ $task->is_completed ? 'bg-moss border-moss' : 'border-inksoft/40 hover:border-ochre' }}">
+                                                @if($task->is_completed)
+                                                    <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M4 12l5 5L20 6" />
+                                                    </svg>
+                                                @endif
+                                            </button>
+                                        </form>
 
-                                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <span class="text-sm font-medium truncate {{ $task->is_completed ? 'text-gray-400 line-through' : 'text-gray-700' }}">
+                                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0">
+                                            <span class="text-sm font-medium truncate {{ $task->is_completed ? 'text-inksoft/60 line-through' : 'text-ink' }}">
                                                 {{ $task->title }}
                                             </span>
                                             @if($task->category)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wide bg-ochresoft text-ochre">
                                                     {{ $task->category->name }}
                                                 </span>
                                             @endif
                                         </div>
                                     </div>
 
-                                    <div class="flex items-center gap-3 ml-4 flex-shrink-0">
-                                        <form action="{{ route('tasks.update', $task) }}" method="POST">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="submit" class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border transition cursor-pointer {{ $task->is_completed ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200' : 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200' }}">
-                                                {{ $task->is_completed ? 'Done' : 'Pending' }}
-                                            </button>
-                                        </form>
-
-                                        <form action="{{ route('tasks.destroy', $task) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-500 hover:text-red-700 text-sm font-semibold px-2 py-1 transition cursor-pointer">
-                                                Delete
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <form action="{{ route('tasks.destroy', $task) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');" class="ml-4 flex-shrink-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="font-mono text-[10px] uppercase tracking-wide text-rust/60 hover:text-rust transition">
+                                            Delete
+                                        </button>
+                                    </form>
                                 </li>
                             @endforeach
                         </ul>
