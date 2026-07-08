@@ -14,6 +14,7 @@ class Task extends Model
         'user_id',
         'category_id',
         'title',
+        'due_at',
         'is_completed',
     ];
 
@@ -24,6 +25,7 @@ class Task extends Model
     {
         return [
             'is_completed' => 'boolean',
+            'due_at' => 'date',
         ];
     }
 

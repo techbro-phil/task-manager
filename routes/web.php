@@ -11,6 +11,8 @@ Route::get('/', function () {
 
 Route::middleware('auth')->group(function () {
     Route::resource('tasks', TaskController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::patch('/tasks/{task}/toggle', [TaskController::class, 'toggle'])->name('tasks.toggle');
+
     Route::resource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

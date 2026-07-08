@@ -5,10 +5,12 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreTaskRequest extends FormRequest
+class UpdateTaskRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // Ownership is checked in the controller via TaskPolicy,
+        // since that needs the route-bound Task instance.
         return true;
     }
 
