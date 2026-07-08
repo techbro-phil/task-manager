@@ -36,11 +36,15 @@
     </script>
 
     <style>
-        .check-square { transition: background-color .15s ease, border-color .15s ease; }
+        .check-square { transition: background-color .15s ease, border-color .15s ease, transform .1s ease; }
+        .check-square:active { transform: scale(0.92); }
         .tab-hole {
             width: 6px; height: 6px; border-radius: 9999px;
             background: #FBF8F2; border: 1px solid #E7DFCE;
         }
+        .task-card { transition: box-shadow .15s ease, border-color .15s ease; }
+        .task-card:hover { border-color: #D8CEB4; }
+        ::selection { background: #F5EADA; }
     </style>
 </head>
 <body class="bg-paper font-body text-ink antialiased">
@@ -120,10 +124,7 @@
                         <div class="space-y-2">
                             @foreach($categories as $category)
                                 <div class="flex items-center justify-between gap-2 px-2 py-1.5 rounded {{ request('category_id') == $category->id ? 'bg-ochresoft' : '' }}">
-                                    
-                                        href="{{ route('tasks.index', ['category_id' => $category->id]) }}"
-                                        class="flex items-center gap-2 text-sm font-medium {{ request('category_id') == $category->id ? 'text-ochre' : 'text-inksoft hover:text-ink' }}"
-                                    >
+                                    <a href="{{ route('tasks.index', ['category_id' => $category->id]) }}" class="flex items-center gap-2 text-sm font-medium {{ request('category_id') == $category->id ? 'text-ochre' : 'text-inksoft hover:text-ink' }}">
                                         <span class="tab-hole"></span>
                                         {{ $category->name }}
                                     </a>
@@ -188,23 +189,23 @@
 
                 <!-- Tasks List -->
                 <main>
-                    <div class="bg-white rounded-lg border border-rule shadow-sm overflow-hidden">
-                        <ul role="list" class="divide-y divide-rule">
+                    <div class="rounded-lg overflow-hidden">
+                        <ul role="list" class="space-y-2">
                             @if($tasks->isEmpty())
-                                <li class="px-6 py-12 text-center text-sm text-inksoft">
-                                    Nothing here yet. Add your first task above.
+                                <li class="bg-white border border-dashed border-rule rounded-lg px-6 py-16 text-center">
+                                    <p class="text-sm text-inksoft">Nothing here yet.</p>
+                                    <p class="text-xs text-inksoft/60 mt-1">Add your first task above to get started.</p>
                                 </li>
                             @endif
 
                             @foreach ($tasks as $task)
-                                <li class="px-6 py-4 flex items-center hover:bg-paper/60 transition justify-between">
+                                <li class="task-card bg-white border border-rule rounded-lg px-5 py-4 flex items-center justify-between shadow-sm">
                                     <div class="flex items-center flex-1 min-w-0 gap-4">
-                                        <!-- Checkbox toggle -->
                                         <form action="{{ route('tasks.update', $task) }}" method="POST">
                                             @csrf
                                             @method('PUT')
                                             <button type="submit" aria-label="{{ $task->is_completed ? 'Mark as pending' : 'Mark as done' }}"
-                                                class="check-square w-6 h-6 rounded-sm border-2 flex items-center justify-center flex-shrink-0 {{ $task->is_completed ? 'bg-moss border-moss' : 'border-inksoft/40 hover:border-ochre' }}">
+                                                class="check-square w-6 h-6 rounded-sm border-2 flex items-center justify-center flex-shrink-0 {{ $task->is_completed ? 'bg-moss border-moss' : 'border-inksoft/30 hover:border-ochre' }}">
                                                 @if($task->is_completed)
                                                     <svg viewBox="0 0 24 24" class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M4 12l5 5L20 6" />
@@ -214,11 +215,11 @@
                                         </form>
 
                                         <div class="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0">
-                                            <span class="text-sm font-medium truncate {{ $task->is_completed ? 'text-inksoft/60 line-through' : 'text-ink' }}">
+                                            <span class="text-sm font-medium truncate {{ $task->is_completed ? 'text-inksoft/50 line-through' : 'text-ink' }}">
                                                 {{ $task->title }}
                                             </span>
                                             @if($task->category)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wide bg-ochresoft text-ochre">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wide bg-ochresoft text-ochre w-fit">
                                                     {{ $task->category->name }}
                                                 </span>
                                             @endif
@@ -228,7 +229,7 @@
                                     <form action="{{ route('tasks.destroy', $task) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');" class="ml-4 flex-shrink-0">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="font-mono text-[10px] uppercase tracking-wide text-rust/60 hover:text-rust transition">
+                                        <button type="submit" class="font-mono text-[10px] uppercase tracking-wide text-rust/50 hover:text-rust transition">
                                             Delete
                                         </button>
                                     </form>
